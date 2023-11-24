@@ -5,6 +5,10 @@ const { State } = require('gell');
 
 const { materialize, attribute } = require('../../binding/javascript');
 
+class Extension extends State {
+	message='gello!'
+}
+
 describe('javascript materializer', function() {
 	let image$, types;
 
@@ -50,16 +54,24 @@ describe('javascript materializer', function() {
 		})
 
 		it('model with class', function() {
-			class Foo extends State {
-				message='gello!'
-			}
-
 			const model = {
-				class: Foo,
+				class: Extension,
 				attributes: ['a']
 			}
 
 			const s_ = materialize({ a: 100 }, model);
+
+			assert(s_);
+			assert.deepStrictEqual(s_.snapshot(), { a: 100 });
+			assert.strictEqual(s_.message, 'gello!');
+		})
+
+		it('with class parameter', function() {
+			const model = {
+				attributes: ['a']
+			}
+
+			const s_ = materialize({ a: 100 }, model, Extension);
 
 			assert(s_);
 			assert.deepStrictEqual(s_.snapshot(), { a: 100 });

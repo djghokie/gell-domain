@@ -58,10 +58,10 @@ function merge(image$, s_, model) {
 	}
 }
 
-function javascript(image$={}, model) {
+function javascript(image$={}, model, extension=State) {
 	if (!model) return all(image$);
 
-	const { class: klass=State, extends: xtends } = model;
+	const { class: klass=extension, extends: xtends } = model;
 
 	if (xtends) {
 		if (Array.isArray(xtends)) {
