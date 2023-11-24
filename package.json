@@ -1,0 +1,20 @@
+{
+  "name": "gell-domain",
+  "version": "0.0.1",
+  "description": "domain modeling for gell",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha --recursive"
+  },
+  "keywords": [
+    "gell"
+  ],
+  "author": "Daniel Gay",
+  "license": "ISC",
+  "dependencies": {
+    "gell": "^1.18.0"
+  },
+  "devDependencies": {
+    "gell-runtime": "^0.5.3"
+  }
+}
