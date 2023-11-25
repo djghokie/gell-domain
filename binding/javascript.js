@@ -78,8 +78,12 @@ function javascript(image$={}, model, extension=State) {
 
 		var s_ = javascript(image$, base);
 	}
+	/**
+	 * WIP: type checking here doesn't not work across packages for some reason
 	else if (klass === State || klass.prototype instanceof State) var s_ = new klass();
 	else throw new Error(`class (prototype=${klass.prototype}) does not extend State`);
+	 */
+	else var s_ = new klass();
 
 	merge(image$, s_, model);
 
