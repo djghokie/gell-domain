@@ -136,6 +136,13 @@ describe('javascript materializer', function() {
 			assert.strictEqual(value, 'foo');
 		})
 
+		it('function spec', function() {
+			const { name, value } = attribute('b', z => 'gello!', image$, types);
+
+			assert.strictEqual(name, 'b');
+			assert.strictEqual(value(), 'gello!');
+		})
+
 		it('object spec', function() {
 			const spec = {
 				type: 'date'
@@ -159,7 +166,7 @@ describe('javascript materializer', function() {
 			assert.strictEqual(value, 'gello!');
 		})
 
-		it('spec with static default', function() {
+		it('object spec with static default', function() {
 			const spec = {
 				default: 'gello!'
 			}
@@ -168,6 +175,18 @@ describe('javascript materializer', function() {
 
 			assert.strictEqual(name, 'b');
 			assert.strictEqual(value, 'gello!');
+		})
+
+		it('object spec with derivation function', function() {
+			const spec = {
+				default: 'gello!',
+				derive: z => 'world!'
+			}
+
+			const { name, value } = attribute('b', spec, image$, types);
+
+			assert.strictEqual(name, 'b');
+			assert.strictEqual(value(), 'world!');
 		})
 	})
 })

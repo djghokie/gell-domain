@@ -26,14 +26,19 @@ function attribute(attr, spec, image$, types={}) {
 		case 'boolean':
 			var name = attr;
 			break;
+		case 'function':
+			var name = attr;
+			var derived = spec;
+			break;
 		case 'object':
 			var name = spec.name || attr;
 			var type = spec.type ? types[spec.type] || spec : spec;
+			var derived = spec.derive;
 	}
 
 	assert(typeof name === 'string', spec);
 
-	const value = stateValue(image$[name], type);
+	const value = derived || stateValue(image$[name], type);
 
 	return { name, value }
 }
@@ -72,9 +77,9 @@ function javascript(image$={}, model, extension=State) {
 		else var base = xtends;
 
 		var s_ = javascript(image$, base);
-	} else {
-		var s_ = new klass();
 	}
+	else if (klass === State || klass.prototype instanceof State) var s_ = new klass();
+	else throw new Error(`class (prototype=${klass.prototype}) does not extend State`);
 
 	merge(image$, s_, model);
 
