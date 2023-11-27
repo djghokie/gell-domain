@@ -4,13 +4,20 @@ const { State } = require('gell');
 const { all } = require('gell/state/materialize');
 
 function stateValue(val$, type) {
-	if (type) {
-		if (val$ === undefined) {
-			const { default: d } = type;
+	if (type && val$ === undefined) {
+		const { default: d } = type;
 
-			return typeof d === 'function' ? d() : d;
+		if (typeof d === 'function') {
+			// NOTE: only generate the default value once
+			let default$;
+			return function(actor) {
+				if (default$ === undefined) default$ = d.bind(this)(actor);
+
+				return default$;
+			}
 		}
-		return val$;
+
+		return d;
 	}
 
 	return val$;
@@ -52,13 +59,17 @@ function merge(image$, s_, model) {
 
 			const { name, value } = attribute(attr, spec, image$, types);
 	
-			s_.set(name, value);
+			if (typeof value === 'function') s_.derive(name, value);
+			else s_.set(name, value);
+			// s_.set(name, value);
 		})
 	} else {
 		Object.entries(attributes).forEach(([key, spec]) => {
 			const { name, value } = attribute(key, spec, image$, types);
 	
-			s_.set(name, value);
+			// s_.set(name, value);
+			if (typeof value === 'function') s_.derive(name, value);
+			else s_.set(name, value);
 		})
 	}
 }
@@ -107,5 +118,6 @@ function javascript(image$={}, model, extension=State) {
 module.exports = {
 	stateValue,
 	attribute,
-	materialize: javascript
+	materialize: javascript,
+	merge
 }

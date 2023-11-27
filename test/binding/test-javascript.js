@@ -98,6 +98,32 @@ describe('javascript materializer', function() {
 			assert(s_);
 			assert.deepStrictEqual(s_.snapshot(), { a: 200, b: 100, message: 'gello!' });
 		})
+
+		it('model with generated default attribute', function() {
+			const model = {
+				attributes: {
+					a: {
+						default: z => Math.random()
+					},
+					b: {
+						default: z => Math.random()
+					}
+				}
+			}
+
+			const s_ = materialize({}, model, Extension);
+
+			const s$ = s_.snapshot();
+
+			assert(_.isNumber(s$.a));
+			assert(_.isNumber(s$.b));
+
+			assert.strictEqual(s$.a, s_.snapshot().a);
+			assert.strictEqual(s$.a, s_.snapshot().a);
+
+			assert.strictEqual(s$.b, s_.snapshot().b);
+			assert.strictEqual(s$.b, s_.snapshot().b);
+		})
 	})
 
 	describe('attribute', function() {
@@ -151,7 +177,7 @@ describe('javascript materializer', function() {
 			const { name, value } = attribute('b', spec, image$, types);
 
 			assert.strictEqual(name, 'b');
-			assert(_.isDate(value));
+			assert(_.isDate(value()));
 		})
 
 		it('object spec with undefined type', function() {
@@ -178,6 +204,18 @@ describe('javascript materializer', function() {
 		})
 
 		it('object spec with derivation function', function() {
+			const spec = {
+				default: 'gello!',
+				derive: z => 'world!'
+			}
+
+			const { name, value } = attribute('b', spec, image$, types);
+
+			assert.strictEqual(name, 'b');
+			assert.strictEqual(value(), 'world!');
+		})
+
+		it('object spec with derivation function dependent on state', function() {
 			const spec = {
 				default: 'gello!',
 				derive: z => 'world!'

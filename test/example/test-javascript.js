@@ -4,6 +4,7 @@ const _ = require('lodash');
 const { State } = require('gell');
 
 const javascript = require('../../binding/javascript');
+const { alias } = require('../../binding/attributes');
 
 class MyState extends State {
 }
@@ -35,7 +36,19 @@ const model = {
 		/**
 		 * defines attribute "a"
 		 */
-		a: true
+		a: true,
+
+		k: {
+			default: function(actor) {
+				return this.snapshotAttribute('a');
+			}
+		},
+		l: {
+			default: alias('a')
+		},
+		m: {
+			default: alias('a')
+		}
 	}
 }
 
@@ -44,6 +57,8 @@ describe('javascript example', function() {
 		const image$ = {
 			message: 'gello!',
 			a: 100,
+
+			m: 600,
 
 			// will not materialize unknown attributes
 			unknown: 'x'
@@ -60,6 +75,9 @@ describe('javascript example', function() {
 		assert.deepStrictEqual(example$, {
 			message: 'gello!',
 			a: 100,
+			k: 100,
+			l: 100,
+			m: 600,
 		})
 	})
 })
