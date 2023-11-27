@@ -119,10 +119,10 @@ describe('javascript materializer', function() {
 			assert(_.isNumber(s$.b));
 
 			assert.strictEqual(s$.a, s_.snapshot().a);
-			assert.strictEqual(s$.a, s_.snapshot().a);
+			assert.strictEqual(s$.a, s_.get('a'));
 
 			assert.strictEqual(s$.b, s_.snapshot().b);
-			assert.strictEqual(s$.b, s_.snapshot().b);
+			assert.strictEqual(s$.b, s_.get('b'));
 		})
 	})
 
