@@ -50,8 +50,28 @@ function attribute(attr, spec, image$, types={}) {
 	return { name, value }
 }
 
-function merge(image$, s_, model) {
+/**
+ * Merge an image into a State according to a model
+ * 
+ * @param {*} image$ 
+ * @param {*} s_ 
+ * @param {*} model 
+ */
+function merge(image$={}, s_, model, recurse=true) {
 	const { types, attributes=[] } = model;
+
+	const { extends: xtends } = model;
+
+	if (xtends && recurse) {
+		if (Array.isArray(xtends)) {
+			if (xtends.length > 1) throw new Error('NYI');
+
+			var base = xtends[0];
+		}
+		else var base = xtends;
+
+		merge(image$, s_, base);
+	}
 
 	if (Array.isArray(attributes)) {
 		attributes.forEach(spec => {
@@ -72,29 +92,47 @@ function merge(image$, s_, model) {
 			else s_.set(name, value);
 		})
 	}
+
+	return s_;
 }
 
-function javascript(image$={}, model, extension=State) {
-	if (!model) return all(image$);
+function classFromModel(model) {
+	const { class: klass, extends: xtends } = model;
 
-	const { class: klass=extension, extends: xtends } = model;
+	if (klass) return klass;
 
 	if (xtends) {
 		if (Array.isArray(xtends)) {
 			if (xtends.length > 1) throw new Error('NYI');
 
-			var base = xtends[0];
+			return classFromModel(xtends[0]);
 		}
-		else var base = xtends;
-
-		var s_ = javascript(image$, base);
+		else return classFromModel(xtends);
 	}
+
+	return State;
+}
+
+/**
+ * Materialize State from an optional image using domain model
+ * 
+ * @param {*} image$ 
+ * @param {*} model 
+ * @param {*} extension 
+ * @returns 
+ */
+function javascript(image$={}, model, extension) {
+	if (!model) return all(image$);
+
+	const klass = extension || classFromModel(model);
+
 	/**
 	 * WIP: type checking here doesn't not work across packages for some reason
 	else if (klass === State || klass.prototype instanceof State) var s_ = new klass();
 	else throw new Error(`class (prototype=${klass.prototype}) does not extend State`);
 	 */
-	else var s_ = new klass();
+
+	const s_ = new klass();
 
 	merge(image$, s_, model);
 

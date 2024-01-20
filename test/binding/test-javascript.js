@@ -4,12 +4,13 @@ const _ = require('lodash');
 const { State } = require('gell');
 
 const { materialize, attribute } = require('../../binding/javascript');
+const javascript = require('../../binding/javascript');
 
 class Extension extends State {
 	message='gello!'
 }
 
-describe('javascript materializer', function() {
+describe('javascript binding', function() {
 	let image$, types;
 
 	beforeEach(function() {
@@ -225,6 +226,144 @@ describe('javascript materializer', function() {
 
 			assert.strictEqual(name, 'b');
 			assert.strictEqual(value(), 'world!');
+		})
+	})
+
+	describe('merge', function() {
+		let image$, s_, model;
+
+		beforeEach(function() {
+			image$ = {};
+			s_ = new State();
+			model = {
+				attributes: {}
+			}
+		})
+		
+		it('empty', function() {
+			javascript.merge(image$, s_, model);
+
+			assert.deepStrictEqual(s_.snapshot(), {});
+		})
+
+		it('new attribute', function() {
+			image$.a = 200;
+			model.attributes.a = 'number';
+
+			javascript.merge(image$, s_, model);
+
+			assert.deepStrictEqual(s_.snapshot(), { a: 200 });
+		})
+
+		it('with existing attribute', function() {
+			s_.set('b', 'gello!');
+			image$.a = 200;
+			model.attributes.a = 'number';
+
+			javascript.merge(image$, s_, model);
+
+			assert.deepStrictEqual(s_.snapshot(), { a: 200, b: 'gello!' });
+		})
+
+		it('overrides existing attribute', function() {
+			s_.set('a', 'gello!');
+			image$.a = 'world!';
+			model.attributes.a = 'string';
+
+			javascript.merge(image$, s_, model);
+
+			assert.deepStrictEqual(s_.snapshot(), { a: 'world!' });
+		})
+
+		it('handles inheritence', function() {
+			image$.a = 'gello';
+			image$.b = 'world!';
+
+			const base = {
+				attributes: {
+					a: 'string'
+				}
+			}
+
+			model.extends = base;
+			model.attributes.b = 'string';
+
+			javascript.merge(image$, s_, model);
+
+			assert.deepStrictEqual(s_.snapshot(), { a: 'gello', b: 'world!' });
+		})
+	})
+
+	describe('model with inheritence', function() {
+		let model;
+
+		class Custom extends State {
+			get gello() {
+				return 'world!'
+			}
+		}
+
+		beforeEach(function() {
+			const base = {
+				attributes: {
+					a: 'number'
+				}
+			}
+
+			model = {
+				extends: [base]
+			}
+		})
+
+		it('materialize overrides class if specified', function() {
+			const s_ = javascript.materialize({ a: 100 }, model, Custom);
+
+			assert.strictEqual(s_.gello, 'world!');
+			assert.deepStrictEqual(s_.snapshot(), { a: 100 })
+		})
+
+		it('multiple levels', function() {
+			model.attributes = { b: 'number' }
+
+			const top = {
+				extends: model,
+				attributes: {
+					c: 'number'
+				}
+			}
+
+			const image$ = {
+				a: 100,
+				b: 200,
+				c: 300
+			}
+
+			const s_ = javascript.materialize(image$, top);
+
+			assert.deepStrictEqual(s_.snapshot(), image$)
+		})
+
+		it('class defined in middle of hierarchy', function() {
+			model.attributes = { b: 'number' }
+			model.class = Custom;
+
+			const top = {
+				extends: model,
+				attributes: {
+					c: 'number'
+				}
+			}
+
+			const image$ = {
+				a: 100,
+				b: 200,
+				c: 300
+			}
+
+			const s_ = javascript.materialize(image$, top);
+
+			assert.strictEqual(s_.gello, 'world!');
+			assert.deepStrictEqual(s_.snapshot(), image$)
 		})
 	})
 })
