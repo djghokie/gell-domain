@@ -41,13 +41,14 @@ function attribute(attr, spec, image$, types={}) {
 			var name = spec.name || attr;
 			var type = spec.type ? types[spec.type] || spec : spec;
 			var derived = spec.derive;
+			var { actor } = spec;
 	}
 
 	assert(typeof name === 'string', spec);
 
 	const value = derived || stateValue(image$[name], type);
 
-	return { name, value }
+	return { name, value, actor }
 }
 
 /**
@@ -77,19 +78,18 @@ function merge(image$={}, s_, model, recurse=true) {
 		attributes.forEach(spec => {
 			if (typeof spec === 'string') var attr = spec;
 
-			const { name, value } = attribute(attr, spec, image$, types);
+			const { name, value, actor } = attribute(attr, spec, image$, types);
 	
-			if (typeof value === 'function') s_.derive(name, value);
-			else s_.set(name, value);
-			// s_.set(name, value);
+			if (typeof value === 'function') s_.derive(name, value, actor);
+			else s_.set(name, value, actor);
 		})
 	} else {
 		Object.entries(attributes).forEach(([key, spec]) => {
-			const { name, value } = attribute(key, spec, image$, types);
+			const { name, value, actor } = attribute(key, spec, image$, types);
 	
 			// s_.set(name, value);
-			if (typeof value === 'function') s_.derive(name, value);
-			else s_.set(name, value);
+			if (typeof value === 'function') s_.derive(name, value, actor);
+			else s_.set(name, value, actor);
 		})
 	}
 

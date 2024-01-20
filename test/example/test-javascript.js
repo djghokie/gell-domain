@@ -48,6 +48,10 @@ const model = {
 		},
 		m: {
 			default: alias('a')
+		},
+
+		s: {
+			actor: 'john'
 		}
 	}
 }
@@ -61,7 +65,9 @@ describe('javascript example', function() {
 			m: 600,
 
 			// will not materialize unknown attributes
-			unknown: 'x'
+			unknown: 'x',
+
+			s: 2000
 		};
 
 		const example_ = javascript.materialize(image$, model);

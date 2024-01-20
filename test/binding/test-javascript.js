@@ -54,6 +54,23 @@ describe('javascript binding', function() {
 			assert.deepStrictEqual(s_.snapshot(), { a: 100 });
 		})
 
+		it('model with actor', function() {
+			const model = {
+				attributes: {
+					a: {
+						actor: 'john'
+					}
+				}
+			}
+
+			const s_ = materialize({ a: 100 }, model);
+
+			assert(s_);
+			assert.deepStrictEqual(s_.snapshot(), {});
+			assert.deepStrictEqual(s_.snapshot('jane'), {});
+			assert.deepStrictEqual(s_.snapshot('john'), { a: 100 });
+		})
+
 		it('model with class', function() {
 			const model = {
 				class: Extension,
@@ -129,10 +146,11 @@ describe('javascript binding', function() {
 
 	describe('attribute', function() {
 		it('string spec', function() {
-			const { name, value } = attribute(undefined, 'a', image$, types);
+			const { name, value, actor } = attribute(undefined, 'a', image$, types);
 
 			assert.strictEqual(name, 'a');
 			assert.strictEqual(value, 100);
+			assert(actor === undefined);
 		})
 
 		it.skip('name and string spec', function() {
@@ -226,6 +244,19 @@ describe('javascript binding', function() {
 
 			assert.strictEqual(name, 'b');
 			assert.strictEqual(value(), 'world!');
+		})
+
+		it('object spec with actor', function() {
+			const spec = {
+				type: 'foo',
+				actor: 'john'
+			}
+
+			const { name, value, actor } = attribute('a', spec, image$, types);
+
+			assert.strictEqual(name, 'a');
+			assert.strictEqual(value, 100);
+			assert.strictEqual(actor, 'john');
 		})
 	})
 
