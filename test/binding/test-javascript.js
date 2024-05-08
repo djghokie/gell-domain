@@ -323,6 +323,27 @@ describe('javascript binding', function() {
 
 			assert.deepStrictEqual(s_.snapshot(), { a: 'gello', b: 'world!' });
 		})
+
+		it('does not override defaulted attribute (defect)', function() {
+			image$.c = 'foo';
+			s_.set('a', 555);
+			model.attributes.a = {
+				type: 'number',
+				default: z => Math.random()
+			}
+			model.attributes.b = {
+				type: 'string',
+				default: 'gello'
+			}
+			model.attributes.c = {
+				type: 'string',
+				default: 'world!'
+			}
+
+			javascript.merge(image$, s_, model);
+			
+			assert.deepStrictEqual(s_.snapshot(), { a: 555, b: 'gello', c: 'foo' });
+		})
 	})
 
 	describe('model with inheritence', function() {

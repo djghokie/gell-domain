@@ -130,14 +130,19 @@ function merge(image$={}, s_, model, recurse=true) {
 
 			const { name, value, actor } = attribute(attr, spec, image$, types);
 	
+			// dont override with default if state already defines attribute
+			if (image$[name] === undefined && s_.get(name, actor) !== undefined) return;
+
 			if (typeof value === 'function') s_.derive(name, value, actor);
 			else s_.set(name, value, actor);
 		})
 	} else {
 		Object.entries(attributes).forEach(([key, spec]) => {
 			const { name, value, actor } = attribute(key, spec, image$, types);
-	
-			// s_.set(name, value);
+
+			// dont override with default if state already defines attribute
+			if (image$[name] === undefined && s_.get(name, actor) !== undefined) return;
+
 			if (typeof value === 'function') s_.derive(name, value, actor);
 			else s_.set(name, value, actor);
 		})
@@ -220,6 +225,14 @@ function javascript(image$={}, model, extension) {
 	return s_;
 }
 
+/**
+ * Materialize a Projection of a source State based on the supplied model
+ * 
+ * @param {*} source_ 
+ * @param {*} model 
+ * @param {*} extension 
+ * @returns 
+ */
 function project(source_, model, extension) {
 	const klass = extension || classFromModel(model, Projection);
 
