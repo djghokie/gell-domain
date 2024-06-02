@@ -418,4 +418,77 @@ describe('javascript binding', function() {
 			assert.deepStrictEqual(s_.snapshot(), image$)
 		})
 	})
+
+	describe('defects', function() {
+		describe.skip('derived attribute with actor', function() {
+			let image$, model;
+
+			beforeEach(function() {
+				image$ = {
+					firstName: 'john',
+					lastName: 'doe',
+				};
+				model = {
+					attributes: {
+						fullName: {
+							type: 'string',
+							derive: function() {
+								return `${this.get('firstName')} ${this.get('lastName')}`
+							},
+							actor: 'api'
+						}
+					}
+				}
+			})
+			
+			it('does not materialize with no actor', function() {
+				const s_ = javascript.materialize(image$, model);
+
+				const s$ = s_.snapshot();
+
+				assert(!s$.fullName);
+			})
+
+			it('derives with actor', function() {
+				const s_ = javascript.materialize(image$, model);
+
+				const s$ = s_.snapshot('api');
+
+				assert.strictEqual(s$.fullName, 'john doe');
+			})
+		})
+
+		describe('model inheritence with defaults', function() {
+			let model;
+
+			beforeEach(function() {
+				const base = {
+					attributes: {
+						type: {
+							type: 'string',
+							default: 'foo'
+						}
+					}
+				}
+
+				model = {
+					extends: [base],
+					attributes: {
+						type: {
+							type: 'string',
+							default: 'bar'
+						}
+					}
+				}
+			})
+		
+			it('correctly defaults overridden attribute', function() {
+				const s_ = javascript.materialize({}, model);
+
+				const s$ = s_.snapshot();
+
+				assert.strictEqual(s$.type, 'bar');
+			})
+		})
+	})
 })

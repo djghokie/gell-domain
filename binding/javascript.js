@@ -4,6 +4,8 @@ const { State } = require('gell');
 const Projection = require('gell/lib/projection');
 const { all } = require('gell/state/materialize');
 
+const compiler = require('./compiler');
+
 function stateValue(val$, type) {
 	if (type && val$ === undefined) {
 		const { default: d } = type;
@@ -108,7 +110,7 @@ function projection(attr, spec, p_) {
  * @param {*} s_ 
  * @param {*} model 
  */
-function merge(image$={}, s_, model, recurse=true) {
+function merge_legacy(image$={}, s_, model, recurse=true) {
 	const { types, attributes=[] } = model;
 
 	const { extends: xtends } = model;
@@ -149,6 +151,40 @@ function merge(image$={}, s_, model, recurse=true) {
 	}
 
 	return s_;
+}
+
+/**
+ * Merge an image into a State according to a model
+ * 
+ * NOTE: as of 0.1.2, merge uses a compiled model
+ * 	- solves the issue of attributes overridding defaults in a base model
+ * 	- ideally models would be compiled once
+ * 		- currently model is compiled every time materialize is called
+ * 		- not really any less efficient than before
+ * 
+ * WIP: recurse attribute not supported yet
+ * 	- this is because compiler compiles attributes recursively currently
+ * 	- flag may be added to compiler eventually
+ * 
+ * @param {*} image$ 
+ * @param {*} s_ 
+ * @param {*} model 
+ * @param {*} recurse 
+ */
+function merge(image$={}, s_, model, recurse=true) {
+	const model$$ = compiler.compile(model);
+
+	const { types, attributes } = model$$;
+
+	attributes.forEach(spec => {
+		const { name, value, actor } = attribute(null, spec, image$, types);
+
+		// dont override with default if state already defines attribute
+		if (image$[name] === undefined && s_.get(name, actor) !== undefined) return;
+
+		if (typeof value === 'function') s_.derive(name, value, actor);
+		else s_.set(name, value, actor);
+	})
 }
 
 function doProject(p_, model, recurse=true) {
