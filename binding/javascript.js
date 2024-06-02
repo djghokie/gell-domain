@@ -106,6 +106,11 @@ function projection(attr, spec, p_) {
 /**
  * Merge an image into a State according to a model
  * 
+ * WIP: defect still exists (as of 0.1.2) here related to derived attributes
+ * 	- State.derive should not be called
+ * 	- derives the value as part of the materialize process
+ * 		- instead of the resulting State snapshot process
+ * 
  * @param {*} image$ 
  * @param {*} s_ 
  * @param {*} model 
@@ -182,8 +187,7 @@ function merge(image$={}, s_, model, recurse=true) {
 		// dont override with default if state already defines attribute
 		if (image$[name] === undefined && s_.get(name, actor) !== undefined) return;
 
-		if (typeof value === 'function') s_.derive(name, value, actor);
-		else s_.set(name, value, actor);
+		s_.set(name, value, actor);
 	})
 }
 

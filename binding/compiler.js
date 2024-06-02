@@ -60,6 +60,7 @@ function attribute(attr, spec, types={}) {
     if (typeName !== undefined) compiled.type = typeName;
     if (actor !== undefined) compiled.actor = actor;
     if (dfault !== undefined) compiled.default = dfault;
+    if (derived !== undefined) compiled.derive = derived;
 
     // const dfault = _.isFunction(a.default) ? 'derived' : (a.default || 'undefined');
 

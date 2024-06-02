@@ -420,7 +420,7 @@ describe('javascript binding', function() {
 	})
 
 	describe('defects', function() {
-		describe.skip('derived attribute with actor', function() {
+		describe('derived attribute with actor', function() {
 			let image$, model;
 
 			beforeEach(function() {
@@ -430,6 +430,8 @@ describe('javascript binding', function() {
 				};
 				model = {
 					attributes: {
+						firstName: 'string',
+						lastName: 'string',
 						fullName: {
 							type: 'string',
 							derive: function() {
@@ -446,6 +448,8 @@ describe('javascript binding', function() {
 
 				const s$ = s_.snapshot();
 
+				assert.strictEqual(s$.firstName, 'john');
+				assert.strictEqual(s$.lastName, 'doe');
 				assert(!s$.fullName);
 			})
 
@@ -454,6 +458,8 @@ describe('javascript binding', function() {
 
 				const s$ = s_.snapshot('api');
 
+				assert.strictEqual(s$.firstName, 'john');
+				assert.strictEqual(s$.lastName, 'doe');
 				assert.strictEqual(s$.fullName, 'john doe');
 			})
 		})

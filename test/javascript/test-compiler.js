@@ -167,9 +167,10 @@ describe('javascript compiler', function() {
         })
 
         it('function spec', function() {
-            const attribute$$ = compiler.attribute('a', z => 'gello!');
+            const derive = actor => 'gello!'
+            const attribute$$ = compiler.attribute('a', derive);
 
-            assert.deepStrictEqual(attribute$$, { name: 'a' });
+            assert.deepStrictEqual(attribute$$, { name: 'a', derive });
         })
 
         it('type descriptor', function() {
@@ -188,6 +189,14 @@ describe('javascript compiler', function() {
             const attribute$$ = compiler.attribute('a', { default: "gello!" });
 
             assert.deepStrictEqual(attribute$$, { name: 'a', default: 'gello!' });
+        })
+
+        it('with derivation function', function() {
+            const derive = actor => 1 + 1
+
+            const attribute$$ = compiler.attribute('a', { derive });
+
+            assert.deepStrictEqual(attribute$$, { name: 'a', derive });
         })
     })
 
