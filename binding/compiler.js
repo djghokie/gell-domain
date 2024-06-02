@@ -195,6 +195,10 @@ function describe(model={}) {
         name: deriveName(model, klass$$),
         class: klass$$,
         attributes: attr.map(a => {
+			if (a.derive) {
+				delete a.derive;
+				a.derived = true;
+			}
             if (typeof a.default === 'function') a.default = 'derived';
 
             return a;
