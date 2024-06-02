@@ -1,41 +1,39 @@
 const assert = require('assert');
 
+const { v4: uuid } = require('uuid');
+
 const { State } = require('gell');
 
-function attributes_(model) {
-    const keys = Object.keys(model);
+function deriveName(model, hierarchy) {
+    if (model.name) return model.name;
 
-    keys.sort((k1, k2) => k1.localeCompare(k2));
-
-    return keys.map(k => {
-        const a = model[k];
-
-        const dfault = _.isFunction(a.default) ? 'derived' : (a.default || 'undefined');
-
-        return {
-            id: k,
-            name: k,
-            type: a.type || 'unknown',
-            default: dfault
-        }
-    })
+    return `${hierarchy.name} extension`;
 }
 
-function build(id, def) {
-    return {
-        id,
-        name: def.name || id,
-        description: def.description || 'no description',
-        attributes: attributes(def.attributes)
+/**
+ * Compiles an attribute spec
+ * 
+ * WIP: pre-defined types not yet supported
+ * 
+ * WIP: attribute default should be a descriptor
+    {
+        type: 'string',
+        value: 'static value',
+        derive: z => ...
     }
-}
+ * 
+ * @param {*} attr 
+ * @param {*} spec 
+ * @param {*} types 
+ * @returns 
+ */
+function attribute(attr, spec, types={}) {
+    // assert(spec, 'attribute spec is required');
 
-function attribute(attr, spec, image$, types={}) {
 	switch(typeof spec) {
 		case 'string':
 			var name = attr || spec;
-			var type = types[spec];
-			// var value = types[spec];
+			if (attr) var typeName = spec;
 			break;
 		case 'boolean':
 			var name = attr;
@@ -46,28 +44,43 @@ function attribute(attr, spec, image$, types={}) {
 			break;
 		case 'object':
 			var name = spec.name || attr;
-			var type = spec.type ? types[spec.type] || spec : spec;
+			// var type = spec.type ? types[spec.type] || spec : spec;
+			var typeName = spec.type;
 			var derived = spec.derive;
-			var { actor } = spec;
+			var { actor, default: dfault } = spec;
+			break;
+        default:
+            var name = attr;
 	}
 
 	assert(typeof name === 'string', spec);
 
     const compiled = { name };
-
+    // if (typeName) compiled.type = types[typeName] || typeName;  // WIP: predefined types not yet supported
+    if (typeName !== undefined) compiled.type = typeName;
     if (actor !== undefined) compiled.actor = actor;
+    if (dfault !== undefined) compiled.default = dfault;
+
+    // const dfault = _.isFunction(a.default) ? 'derived' : (a.default || 'undefined');
 
 	return compiled;
 }
 
-function attributes(model, recurse=true) {
+/**
+ * Compiles model attributes, optionally recursing through the model hierarchy
+ * 
+ * WIP: return array or map here?
+ *  - map allows for easier overridding of inherited attributes
+ * 
+ * @param {*} model 
+ * @param {*} recurse 
+ * @returns 
+ */
+function compileAttributes(model, recurse=true) {
 	const { types, attributes=[] } = model;
 
 	const { extends: xtends } = model;
 
-    const compiled = [];
-
-    /*
 	if (xtends && recurse) {
 		if (Array.isArray(xtends)) {
 			if (xtends.length > 1) throw new Error('NYI');
@@ -76,23 +89,31 @@ function attributes(model, recurse=true) {
 		}
 		else var base = xtends;
 
-		merge(image$, s_, base);
+        var compiled = compileAttributes(base);
 	}
-    */
+    else var compiled = {};
 
 	if (Array.isArray(attributes)) {
         attributes.forEach(spec => {
             // compiled.push(spec);
 			if (typeof spec === 'string') var attr = spec;
 
-            compiled.push(attribute(attr, spec, types));
+            // compiled.push(attribute(attr, spec, types));
+
+            const ca = attribute(null, spec, types);
+
+            compiled[ca.name] = ca;
 	
 			// if (typeof value === 'function') s_.derive(name, value, actor);
 			// else compiled.push({ name, actor });
 		})
 	} else {
         Object.entries(attributes).forEach(([key, spec]) => {
-            compiled.push(attribute(key, spec, types));
+            const ca = attribute(key, spec, types);
+
+            compiled[ca.name] = ca;
+
+            // compiled.push(attribute(key, spec, types));
             
 			// if (typeof value === 'function') s_.derive(name, value, actor);
 			// else compiled.push({ name, actor });
@@ -134,18 +155,54 @@ function classFromModel(model, def=State) {
  */
 function javascript(model={}, extension) {
     const model$$ = {
-        attributes: attributes(model)
+        attributes: Object.values(compileAttributes(model))
     };
 
-    model$$.class = extension || classFromModel(model);;
+    model$$.class = extension || classFromModel(model);
 
     return model$$;
 }
 
+function hierarchy(model={}) {}
+
+/**
+ * Describes a javascript-based domain model
+ * 
+ * "describing" produces serializable metadata about the model
+ * 
+ * WIP: domain model browser is driving this implementation
+ *  - should describe class hierarchy eventually
+ *  - "id" is needed to uniquely identify models in a domain
+ *      - could potentially be a "full qualified name"
+ * 
+ * @param {*} model 
+ * @returns 
+ */
+function describe(model={}) {
+    const classHierarchy = hierarchy(model);
+
+    const klass = classFromModel(model);
+
+    const klass$$ = {
+        name: klass.name
+    }
+
+    const attr = Object.values(compileAttributes(model));
+
+    return {
+        id: model.id || uuid(),
+        name: deriveName(model, klass$$),
+        class: klass$$,
+        attributes: attr.map(a => {
+            if (typeof a.default === 'function') a.default = 'derived';
+
+            return a;
+        })
+    }
+}
+
 module.exports = {
-	// stateValue,
-	// attribute,
-	// projection,
+	attribute,
 	compile: javascript,
-	// project
+    describe
 }
