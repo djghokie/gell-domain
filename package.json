@@ -1,6 +1,6 @@
 {
   "name": "gell-domain",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "domain modeling for gell",
   "main": "index.js",
   "scripts": {
@@ -12,7 +12,8 @@
   "author": "Daniel Gay",
   "license": "ISC",
   "dependencies": {
-    "gell": "^1.18.0"
+    "gell": "^1.18.0",
+    "uuid": "^10.0.0"
   },
   "devDependencies": {
     "gell-runtime": "^0.5.3"
