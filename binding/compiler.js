@@ -48,6 +48,7 @@ function attribute(attr, spec, types={}) {
 			var typeName = spec.type;
 			var derived = spec.derive;
 			var { actor, default: dfault } = spec;
+
 			break;
         default:
             var name = attr;
@@ -63,6 +64,20 @@ function attribute(attr, spec, types={}) {
     if (derived !== undefined) compiled.derive = derived;
 
     // const dfault = _.isFunction(a.default) ? 'derived' : (a.default || 'undefined');
+
+	// WIP: support non-standard properties
+	if (typeof spec === 'object') {
+		Object.keys(spec).forEach(k => {
+			if (k === 'name') return;
+			if (k === 'type') return;
+			if (k === 'derive') return;
+			if (k === 'actor') return;
+			if (k === 'default') return;
+
+			const val = spec[k];
+			compiled[k] = typeof val === 'function' ? '_function_' : val;
+		})
+	}
 
 	return compiled;
 }
@@ -195,6 +210,10 @@ function describe(model={}) {
         name: deriveName(model, klass$$),
         class: klass$$,
         attributes: attr.map(a => {
+			/**
+			 * WIP: might be confusing to replace functions like this
+			 *   - use "_derived_" instead?
+			 */
 			if (a.derive) {
 				delete a.derive;
 				a.derived = true;

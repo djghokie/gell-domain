@@ -258,6 +258,7 @@ function javascript(image$={}, model, extension) {
 	else throw new Error(`class (prototype=${klass.prototype}) does not extend State`);
 	 */
 
+	// WIP: pass image$ here to constructor
 	const s_ = new klass();
 
 	merge(image$, s_, model);

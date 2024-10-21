@@ -198,6 +198,22 @@ describe('javascript compiler', function() {
 
             assert.deepStrictEqual(attribute$$, { name: 'a', derive });
         })
+
+        it('with non-standard property', function() {
+            const attribute$$ = compiler.attribute('a', { foo: "bar" });
+
+            assert.deepStrictEqual(attribute$$, { name: 'a', foo: 'bar' });
+        })
+
+        it('with non-standard function property', function() {
+            function validate(val) {
+                return val > 0
+            }
+
+            const attribute$$ = compiler.attribute('a', { validate });
+
+            assert.deepStrictEqual(attribute$$, { name: 'a', validate: '_function_' });
+        })
     })
 
     describe('describe', function() {
@@ -222,6 +238,28 @@ describe('javascript compiler', function() {
 
             assert.deepStrictEqual(model$$.attributes[0], {
                 name: 'a',
+            });
+        })
+
+        it('allows arbitrary attribute properties', function() {
+            const model = {
+                attributes: {
+                    description: {
+                        type: 'text',
+                        editable: true,
+                    }
+                }
+            }
+    
+            const model$$ = compiler.describe(model);
+
+            assert(model$$.id);
+            assert.strictEqual(model$$.attributes.length, 1);
+    
+            assert.deepStrictEqual(model$$.attributes[0], {
+                name: 'description',
+                type: 'text',
+                editable: true
             });
         })
     })
